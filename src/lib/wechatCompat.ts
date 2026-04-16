@@ -1,15 +1,13 @@
 import { THEMES } from './themes';
-import { stripIndexMarkers } from './markdownIndexer';
 
 /**
  * Remove internal editor attributes from HTML
  * Used when exporting to avoid including internal implementation details
- *
- * This is now a thin wrapper around stripIndexMarkers from the indexing layer.
- * Keeping this function for backward compatibility.
  */
 export function cleanInternalAttributes(html: string): string {
-    return stripIndexMarkers(html);
+    return html
+        .replace(/\s+data-md-type="[^"]*"/g, '')
+        .replace(/\s+data-md-index="[^"]*"/g, '');
 }
 
 // Helper to convert images to Base64

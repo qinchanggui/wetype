@@ -25,6 +25,10 @@
     "include": [
         "src"
     ],
+    "exclude": [
+        "src/lib/themes/archive",
+        "src/lib/archive"
+    ],
     "references": [
         {
             "path": "./tsconfig.node.json"

@@ -14,5 +14,4 @@ export interface ThemeGroup {
 export const THEME_GROUPS: ThemeGroup[] = [
   { label: '经典', themes: classicThemes },
   { label: '潮流', themes: modernThemes },
-  { label: '更多风格', themes: extraThemes },
 ];
