@@ -161,7 +161,7 @@ export default function App() {
             </div>
 
             {/* 工具栏 (桌面端) */}
-            <div className="glass-toolbar hidden md:grid grid-cols-[38.2fr_61.8fr] px-0 z-[90]">
+            <div className="glass-toolbar hidden md:grid grid-cols-[45fr_55fr] px-0 z-[90]">
                 <ThemeSelector activeTheme={activeTheme} onThemeChange={setActiveTheme} />
                 <Toolbar
                     onExportHtml={handleExportHtml}
