@@ -26,9 +26,8 @@ export const defaultContent = `# 欢迎使用 WeType
 内置代码高亮，支持多种编程语言：
 
 \`\`\`python
-# Python 示例
 def hello_wechat():
-    \"\"\"WeType 排版引擎\"\"\"
+    """WeType 排版引擎"""
     themes = load_themes()
     for theme in themes:
         styled_html = apply_theme(markdown, theme)
@@ -36,7 +35,7 @@ def hello_wechat():
     return styled_html
 \`\`\`
 
-### 引用与表格
+## 引用与表格
 
 > 每套主题都有独特的引用样式。切换主题时，留意引用块的变化。
 
@@ -44,7 +43,6 @@ def hello_wechat():
 |------|------|
 | 魔法粘贴 | 从飞书/Notion/Word 粘贴，自动转 Markdown |
 | 一键复制 | 图片打包 + 样式保留 + 表格不塌陷 |
-| 排版风格 | 4 套精选主题，即时切换 |
 | 代码高亮 | 多语言语法高亮 |
 | 自动保存 | 草稿自动保存到本地，不怕丢失 |
 
