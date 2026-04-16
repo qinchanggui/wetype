@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from 'react';
 import { PenLine, Eye } from 'lucide-react';
 import { md, preprocessMarkdown, applyTheme } from './lib/markdown';
 import { makeWeChatCompatible, cleanInternalAttributes } from './lib/wechatCompat';
-import { THEMES } from './lib/themes';
 import { defaultContent } from './defaultContent';
 import Header from './components/Header';
 import ThemeSelector from './components/ThemeSelector';
@@ -16,7 +15,7 @@ export default function App() {
         return saved || defaultContent;
     });
     const [renderedHtml, setRenderedHtml] = useState<string>('');
-    const [activeTheme, setActiveTheme] = useState(THEMES[0].id);
+    const [activeTheme, setActiveTheme] = useState<string>('sspai');
     const [copied, setCopied] = useState(false);
     const [isCopying, setIsCopying] = useState(false);
     const [activePanel, setActivePanel] = useState<'editor' | 'preview'>('editor');

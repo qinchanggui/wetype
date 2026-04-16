@@ -1,5 +1,6 @@
 import React from 'react';
 import { Wand2 } from 'lucide-react';
+import { handleSmartPaste } from '../lib/htmlToMarkdown';
 
 interface EditorPanelProps {
     markdownInput: string;
@@ -10,6 +11,10 @@ interface EditorPanelProps {
 }
 
 export default function EditorPanel({ markdownInput, onInputChange, editorScrollRef, onEditorScroll, scrollSyncEnabled }: EditorPanelProps) {
+    const onPaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+        handleSmartPaste(e, onInputChange);
+    };
+
     return (
         <div className="border-r border-[#00000015] flex flex-col relative z-30 bg-transparent flex-1 min-h-0">
             <textarea
@@ -18,6 +23,7 @@ export default function EditorPanel({ markdownInput, onInputChange, editorScroll
                 className="w-full flex-1 p-8 md:p-10 resize-none bg-transparent outline-none font-mono text-[15px] md:text-[16px] leading-[1.8] no-scrollbar text-[#1d1d1f] placeholder-[#86868b]"
                 value={markdownInput}
                 onChange={(e) => onInputChange(e.target.value)}
+                onPaste={onPaste}
                 onScroll={scrollSyncEnabled ? onEditorScroll : undefined}
                 placeholder="在这里输入 Markdown 内容..."
                 spellCheck={false}
@@ -27,8 +33,8 @@ export default function EditorPanel({ markdownInput, onInputChange, editorScroll
                 <div className="flex items-center gap-2 min-w-0">
                     <Wand2 size={14} className="text-[#0066cc] shrink-0" />
                     <span className="text-[12.5px] font-medium text-[#1d1d1f]">
-                        <span className="hidden sm:inline">支持 Markdown 语法，实时预览排版效果</span>
-                        <span className="sm:hidden">Markdown 实时预览</span>
+                        <span className="hidden sm:inline">支持直接粘贴 <span className="text-[#86868b]">飞书、Notion或Word等</span> 富文本，自动净化为 Markdown</span>
+                        <span className="sm:hidden">支持直接粘贴 <span className="text-[#86868b]">飞书、Notion或Word等</span> 富文本，自动转化</span>
                     </span>
                 </div>
             </div>
