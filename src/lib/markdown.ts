@@ -12,7 +12,7 @@ export const md = new MarkdownIt({
         if (lang && hljs.getLanguage(lang)) {
             try {
                 codeContent = hljs.highlight(str, { language: lang }).value;
-            } catch (__) {
+            } catch (_e) {
                 codeContent = md.utils.escapeHtml(str);
             }
         } else {

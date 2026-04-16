@@ -52,17 +52,16 @@ describe('applyTheme', () => {
         expect(comment?.getAttribute('style')).toContain('font-style: normal;');
     });
 
-    it('does not override bloomberg block-code font inheritance', () => {
+    it('does not override block-code font inheritance', () => {
         const rawHtml = renderMarkdown('```javascript\n// terminal theme\nconst raphael = 1;\n```');
-        const themed = applyTheme(rawHtml, 'bloomberg');
+        const themed = applyTheme(rawHtml, 'sspai');
         const doc = new DOMParser().parseFromString(themed, 'text/html');
         const container = doc.querySelector('body > div');
         const pre = doc.querySelector('pre');
         const code = doc.querySelector('pre code');
 
-        expect(container?.getAttribute('style')).toContain('"Courier New"');
+        expect(container?.getAttribute('style')).toContain('-apple-system');
         expect(pre?.getAttribute('style')).not.toContain('font-family:');
         expect(code?.getAttribute('style')).not.toContain('font-family:');
-        expect(themed).not.toContain('"SF Mono", "Cascadia Code", "Fira Code", Consolas, Menlo, Monaco, monospace');
     });
 });

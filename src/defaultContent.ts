@@ -31,7 +31,7 @@ def hello_wechat():
     themes = load_themes()
     for theme in themes:
         styled_html = apply_theme(markdown, theme)
-        print(f\"{theme.name} 排版完成\")
+        print(f'{theme.name} 排版完成')
     return styled_html
 \`\`\`
 

@@ -1,5 +1,5 @@
 import TurndownService from 'turndown';
-// @ts-ignore
+// @ts-expect-error turndown-plugin-gfm lacks type declarations
 import { gfm } from 'turndown-plugin-gfm';
 
 const turndownService = new TurndownService({
@@ -17,6 +17,7 @@ turndownService.use(gfm);
 // Rule to optimize images
 turndownService.addRule('image', {
     filter: 'img',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     replacement: (_content, node: any) => {
         const alt = node.alt || '图片';
         const src = (node.getAttribute?.('src') || node.src || '').trim();
@@ -66,7 +67,7 @@ function isMarkdown(text: string): boolean {
         /\*[^*\n]+\*/,
         /\[[^\]]+\]\([^)]+\)/,
         /!\[[^\]]*\]\([^)]+\)/,
-        /^[\*\-\+]\s+/m,
+        /^[*\-+]\s+/m,
         /^\d+\.\s+/m,
         /^>\s+/m,
         /`[^`]+`/,
