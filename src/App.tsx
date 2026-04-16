@@ -189,7 +189,7 @@ export default function App() {
             </div>
 
             {/* 编辑区 & 预览区 */}
-            <main className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-[38.2fr_61.8fr] relative">
+            <main className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-[45fr_55fr] relative">
                 <div className={`${activePanel === 'editor' ? 'flex' : 'hidden'} md:flex flex-col overflow-hidden`}>
                     <EditorPanel
                         markdownInput={markdownInput}
