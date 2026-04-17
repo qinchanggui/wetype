@@ -28,10 +28,10 @@ export default function ThemeSelector({ activeTheme, onThemeChange }: ThemeSelec
             </div>
 
             {/* Theme description */}
-            <div className="hidden lg:flex items-center ml-4 pl-4 border-l border-[#00000015]">
-                <p className="text-[13px] text-[#86868b] font-medium tracking-wide truncate max-w-[300px] xl:max-w-[450px]">
-                    <span className="text-[#1d1d1f] font-semibold mr-1">{selectedTheme?.name}：</span>
-                    {selectedTheme?.description}
+            <div className="hidden lg:flex items-center ml-4 pl-4 border-l border-[#00000015] min-w-0">
+                <p className="text-[13px] text-[#86868b] font-medium tracking-wide truncate">
+                    <span className="text-[#1d1d1f] font-semibold mr-1 shrink-0">{selectedTheme?.name}：</span>
+                    <span className="truncate">{selectedTheme?.description}</span>
                 </p>
             </div>
         </div>

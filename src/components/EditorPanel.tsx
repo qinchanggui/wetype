@@ -1,5 +1,4 @@
 import React from 'react';
-import { Wand2 } from 'lucide-react';
 import { handleSmartPaste } from '../lib/htmlToMarkdown';
 
 interface EditorPanelProps {
@@ -29,15 +28,7 @@ export default function EditorPanel({ markdownInput, onInputChange, editorScroll
                 spellCheck={false}
             />
 
-            <div className="flex-shrink-0 flex items-center justify-between gap-2 px-4 sm:px-6 py-3 sm:py-4 border-t border-[#00000010] bg-[#fbfbfd]/50 backdrop-blur-md">
-                <div className="flex items-center gap-2 min-w-0">
-                    <Wand2 size={14} className="text-[#0066cc] shrink-0" />
-                    <span className="text-[12.5px] font-medium text-[#1d1d1f]">
-                        <span className="hidden sm:inline">支持直接粘贴 <span className="text-[#86868b]">飞书、Notion或Word等</span> 富文本，自动净化为 Markdown</span>
-                        <span className="sm:hidden">支持直接粘贴 <span className="text-[#86868b]">飞书、Notion或Word等</span> 富文本，自动转化</span>
-                    </span>
-                </div>
-            </div>
+
         </div>
     );
 }
