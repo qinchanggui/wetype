@@ -32,7 +32,7 @@ export const modernThemes: Theme[] = [
   {
     id: 'wechat',
     name: '微信原生',
-    description: '原汁原味的官方绿底纹，满足传统阅读习惯的稳妥之选',
+    description: '原汁原味的官方绿底纹，满足传统阅读习惯',
     styles: {
       container: 'max-width: 100%; margin: 0 auto; padding: 24px 20px 48px 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.7 !important; color: #333333 !important; background-color: #ffffff !important; word-wrap: break-word;',
       h1: 'font-size: 32px; font-weight: 700; color: #111 !important; line-height: 1.3 !important; margin: 38px 0 16px; letter-spacing: -0.015em; ',
@@ -60,7 +60,7 @@ export const modernThemes: Theme[] = [
   {
     id: 'apple',
     name: 'Mac',
-    description: '纯净现代的极致留白，适合日常记录的万能首选',
+    description: '纯净现代的极致留白，适合日常记录',
     styles: {
       container: 'max-width: 100%; margin: 0 auto; padding: 24px 20px 48px 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.7 !important; color: #1d1d1f !important; background-color: #ffffff !important; word-wrap: break-word;',
       h1: 'font-size: 32px; font-weight: 700; color: #111 !important; line-height: 1.3 !important; margin: 38px 0 16px; letter-spacing: -0.015em; ',
