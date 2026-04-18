@@ -196,6 +196,40 @@ export async function makeWeChatCompatible(html: string, themeId: string): Promi
         }
     });
 
+    // 4.5 Merge adjacent same-type inline emphasis tags.
+    // WeChat editor unpredictably breaks adjacent <strong><strong> into
+    // separate lines. Merging them into a single tag eliminates this.
+    // Example: <strong>A</strong>：<strong>B</strong> -> <strong>A：B</strong>
+    const mergeableTags = ['strong', 'b', 'em'];
+    for (const tag of mergeableTags) {
+        const nodes = section.querySelectorAll(tag);
+        for (const node of Array.from(nodes)) {
+            if (!node.parentNode) continue;
+            let cursor = node.nextSibling;
+            while (cursor) {
+                if (cursor.nodeType !== Node.TEXT_NODE) break;
+                const textContent = cursor.textContent || '';
+                // Only merge across short punctuation/whitespace separators
+                if (!/^\s*[：；，。！？、,./:;!?\s]*\s*$/.test(textContent)) break;
+                const nextEl = cursor.nextSibling as Element | null;
+                if (!nextEl || nextEl.nodeType !== Node.ELEMENT_NODE || nextEl.tagName !== tag.toUpperCase()) break;
+                // Merge: move the separator text and nextEl's children into current node
+                node.appendChild(doc.createTextNode(textContent));
+                while (nextEl.firstChild) {
+                    node.appendChild(nextEl.firstChild);
+                }
+                // Copy style if the merged node has any
+                const srcStyle = (nextEl as Element).getAttribute('style');
+                if (srcStyle) {
+                    const dstStyle = node.getAttribute('style') || '';
+                    if (!dstStyle) node.setAttribute('style', srcStyle);
+                }
+                cursor = nextEl.nextSibling;
+                (nextEl.parentNode as Node).removeChild(nextEl);
+            }
+        }
+    }
+
     // 5. Convert all images to Base64 for safe WeChat pasting
     const imgs = Array.from(section.querySelectorAll('img'));
     await Promise.all(imgs.map(async img => {
