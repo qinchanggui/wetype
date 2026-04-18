@@ -215,6 +215,7 @@ export default function App() {
                 <span>{charCount} 字符</span>
                 <span>{wordCount} 字</span>
                 <span>{paragraphCount} 段</span>
+                <span className="ml-auto mr-0">v{__APP_VERSION__}</span>
             </div>
         </div>
     );
