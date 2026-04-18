@@ -163,6 +163,9 @@ export async function makeWeChatCompatible(html: string, themeId: string): Promi
 
     // Keep CJK punctuation attached to preceding inline emphasis in WeChat.
     // Example: <strong>标题</strong>：说明 -> <strong>标题：</strong>说明
+    // But skip when the next sibling after the punctuation is also an inline
+    // emphasis tag, because WeChat breaks adjacent <strong><strong> into
+    // separate lines regardless of zero-width spaces.
     const inlineTags = new Set(['STRONG', 'B', 'EM', 'SPAN', 'A', 'CODE']);
     const inlineNodes = section.querySelectorAll('strong, b, em, span, a, code');
     inlineNodes.forEach(node => {
@@ -174,20 +177,22 @@ export async function makeWeChatCompatible(html: string, themeId: string): Promi
 
         const punct = match[1];
         const rest = match[2] || '';
+
+        // Peek ahead: after absorbing punct, will next sibling be another
+        // inline emphasis tag? If so, skip absorption to keep the text
+        // node as a natural separator between the two tags.
+        const peekNext = rest.trim() === ''
+            ? node.nextElementSibling
+            : null;
+        if (peekNext && peekNext.nodeType === Node.ELEMENT_NODE && inlineTags.has(peekNext.tagName)) {
+            return;
+        }
+
         node.appendChild(doc.createTextNode(punct));
         if (rest) {
             next.textContent = rest;
         } else {
             next.parentNode?.removeChild(next);
-        }
-
-        // After absorbing punctuation, if the next sibling is also an inline emphasis
-        // tag (e.g. <strong>A：</strong><strong>B</strong>), WeChat editor may break
-        // them into separate lines. Insert a zero-width space between them.
-        const nextSibling = node.nextSibling as Element | null;
-        if (nextSibling && nextSibling.nodeType === Node.ELEMENT_NODE && inlineTags.has(nextSibling.tagName)) {
-            const zwsp = doc.createTextNode('\u200B');
-            node.parentNode?.insertBefore(zwsp, nextSibling);
         }
     });
 
