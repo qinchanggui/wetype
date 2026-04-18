@@ -163,6 +163,7 @@ export async function makeWeChatCompatible(html: string, themeId: string): Promi
 
     // Keep CJK punctuation attached to preceding inline emphasis in WeChat.
     // Example: <strong>标题</strong>：说明 -> <strong>标题：</strong>说明
+    const inlineTags = new Set(['STRONG', 'B', 'EM', 'SPAN', 'A', 'CODE']);
     const inlineNodes = section.querySelectorAll('strong, b, em, span, a, code');
     inlineNodes.forEach(node => {
         const next = node.nextSibling;
@@ -178,6 +179,15 @@ export async function makeWeChatCompatible(html: string, themeId: string): Promi
             next.textContent = rest;
         } else {
             next.parentNode?.removeChild(next);
+        }
+
+        // After absorbing punctuation, if the next sibling is also an inline emphasis
+        // tag (e.g. <strong>A：</strong><strong>B</strong>), WeChat editor may break
+        // them into separate lines. Insert a zero-width space between them.
+        const nextSibling = node.nextSibling as Element | null;
+        if (nextSibling && nextSibling.nodeType === Node.ELEMENT_NODE && inlineTags.has(nextSibling.tagName)) {
+            const zwsp = doc.createTextNode('\u200B');
+            node.parentNode?.insertBefore(zwsp, nextSibling);
         }
     });
 
