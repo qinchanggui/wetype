@@ -39,7 +39,62 @@ export function preprocessMarkdown(content: string) {
         /([^\s])\*\*([+\-＋－%％~～!！?？,，.。:：;；、\\/|@#￥$^&*_=（）()【】\[\]《》〈〉「」『』“”"'`…·][^\n*]*?)\*\*/g,
         '$1**\u200B$2**'
     );
+    // markdown-it requires a word boundary before `**` to open bold emphasis.
+    // CJK characters don't count as word boundaries, so `会**text**` fails to parse.
+    // Insert a zero-width space before opening `**` that follows a CJK character.
+    content = content.replace(
+        /([\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff])(\*\*(?![\s*]))/g,
+        '$1\u200B$2'
+    );
+    // Similarly, ensure closing `**` after CJK text is recognized.
+    content = content.replace(
+        /(\*\*)([\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff])/g,
+        '$1\u200B$2'
+    );
     return content;
+}
+
+/**
+ * Post-process HTML to convert any remaining `**...**` that markdown-it
+ * failed to parse (common with CJK text) into proper `<strong>` tags.
+ * This handles cases like `会**text**` or `**text，**` where CJK
+ * characters prevent markdown-it from recognizing the emphasis markers.
+ */
+export function postProcessHtml(html: string): string {
+    let result = '';
+    let i = 0;
+    let inTag = false;
+    while (i < html.length) {
+        if (html[i] === '<') { inTag = true; result += html[i]; i++; continue; }
+        if (html[i] === '>') { inTag = false; result += html[i]; i++; continue; }
+        if (!inTag && html[i] === '*' && html[i + 1] === '*') {
+            let j = i + 2;
+            let found = false;
+            while (j < html.length - 1) {
+                if (html[j] === '<') {
+                    const k = html.indexOf('>', j);
+                    j = k >= 0 ? k + 1 : html.length;
+                    continue;
+                }
+                if (html[j] === '*' && html[j + 1] === '*') {
+                    const inner = html.substring(i + 2, j);
+                    result += `<strong>${inner}</strong>`;
+                    i = j + 2;
+                    found = true;
+                    break;
+                }
+                j++;
+            }
+            if (!found) {
+                result += html[i];
+                i++;
+            }
+            continue;
+        }
+        result += html[i];
+        i++;
+    }
+    return result;
 }
 
 export function applyTheme(html: string, themeId: string) {

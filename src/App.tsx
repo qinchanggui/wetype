@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { PenLine, Eye } from 'lucide-react';
-import { md, preprocessMarkdown, applyTheme } from './lib/markdown';
+import { md, preprocessMarkdown, postProcessHtml, applyTheme } from './lib/markdown';
 import { makeWeChatCompatible, cleanInternalAttributes } from './lib/wechatCompat';
 import { defaultContent } from './defaultContent';
 import Header from './components/Header';
@@ -36,7 +36,7 @@ export default function App() {
 
     // Core rendering
     useEffect(() => {
-        const rawHtml = md.render(preprocessMarkdown(markdownInput));
+        const rawHtml = postProcessHtml(md.render(preprocessMarkdown(markdownInput)));
         const styledHtml = applyTheme(rawHtml, activeTheme);
         setRenderedHtml(styledHtml);
     }, [markdownInput, activeTheme]);
