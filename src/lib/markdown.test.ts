@@ -81,6 +81,34 @@ describe('WeChat output hygiene (zero-width chars)', () => {
     });
 });
 
+describe('XSS sanitization (DOMPurify in postProcessHtml)', () => {
+    it('strips event handlers from raw HTML img tags', () => {
+        const html = postProcessHtml(md.render('<img src=x onerror="alert(1)">'));
+        expect(html).not.toContain('onerror');
+    });
+
+    it('strips inline script blocks', () => {
+        const html = postProcessHtml(md.render('hello <script>alert(1)</script> world'));
+        expect(html).not.toContain('<script');
+        expect(html).toContain('hello');
+    });
+
+    it('strips svg onload handlers', () => {
+        const html = postProcessHtml(md.render('<svg onload="alert(1)"></svg>'));
+        expect(html.toLowerCase()).not.toContain('onload');
+    });
+
+    it('keeps data: image URIs (magic-paste screenshots)', () => {
+        const html = postProcessHtml(md.render('![shot](data:image/png;base64,iVBORw0KGgo=)'));
+        expect(html).toContain('data:image/png;base64,iVBORw0KGgo=');
+    });
+
+    it('keeps inline style attributes (theming mechanism)', () => {
+        const html = postProcessHtml(md.render('<span style="color: red;">红</span>'));
+        expect(html).toContain('color: red');
+    });
+});
+
 describe('applyTheme', () => {
     it('groups consecutive standalone images into an image grid', () => {
         const html = '<p><img src="a.png" /></p><p><img src="b.png" /></p>';

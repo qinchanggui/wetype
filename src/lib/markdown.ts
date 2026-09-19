@@ -1,7 +1,35 @@
 import MarkdownIt from 'markdown-it';
-import hljs from 'highlight.js';
+import hljs from 'highlight.js/lib/core';
+import javascript from 'highlight.js/lib/languages/javascript';
+import typescript from 'highlight.js/lib/languages/typescript';
+import xml from 'highlight.js/lib/languages/xml';
+import css from 'highlight.js/lib/languages/css';
+import json from 'highlight.js/lib/languages/json';
+import bash from 'highlight.js/lib/languages/bash';
+import python from 'highlight.js/lib/languages/python';
+import markdownLang from 'highlight.js/lib/languages/markdown';
+import yaml from 'highlight.js/lib/languages/yaml';
+import sql from 'highlight.js/lib/languages/sql';
+import java from 'highlight.js/lib/languages/java';
+import cpp from 'highlight.js/lib/languages/cpp';
+import csharp from 'highlight.js/lib/languages/csharp';
+import go from 'highlight.js/lib/languages/go';
+import rust from 'highlight.js/lib/languages/rust';
+import php from 'highlight.js/lib/languages/php';
+import diff from 'highlight.js/lib/languages/diff';
+import ini from 'highlight.js/lib/languages/ini';
+import DOMPurify from 'dompurify';
 import 'highlight.js/styles/github.css';
 import { THEMES } from './themes';
+
+// Register only the languages this tool realistically highlights.
+// Full `highlight.js` bundles ~190 languages and dominated the JS output
+// (1.3MB); the curated set below keeps coverage for typical articles
+// at a fraction of the size.
+[
+    javascript, typescript, xml, css, json, bash, python, markdownLang,
+    yaml, sql, java, cpp, csharp, go, rust, php, diff, ini,
+].forEach(lang => hljs.registerLanguage(lang.name, lang));
 
 export const md = new MarkdownIt({
     html: true,
@@ -65,8 +93,18 @@ export function preprocessMarkdown(content: string) {
  * `**` emphasis. Once parsing is done they serve no purpose, and their
  * Unicode meaning ("line break allowed here") makes WeChat's editor
  * break lines at strong boundaries after pasting.
+ *
+ * The input is sanitized with DOMPurify first: markdown-it runs with
+ * `html: true`, so raw HTML (typed or delivered by pasting rich text
+ * from arbitrary webpages) reaches this point unsanitized and would be
+ * injected into the DOM via dangerouslySetInnerHTML. DOMPurify strips
+ * scripts/event handlers while keeping inline styles (the product's
+ * core mechanism) and data: image URIs (magic-paste screenshots).
  */
 export function postProcessHtml(html: string): string {
+    html = DOMPurify.sanitize(html, {
+        ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel|callto|sms|cid|xmpp|data):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+    });
     let result = '';
     let i = 0;
     let inTag = false;
