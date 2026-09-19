@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { applyTheme, md, preprocessMarkdown } from './markdown';
+import { applyTheme, md, postProcessHtml, preprocessMarkdown } from './markdown';
+import { makeWeChatCompatible } from './wechatCompat';
 
 function renderMarkdown(markdown: string) {
     return md.render(preprocessMarkdown(markdown));
+}
+
+async function renderForWeChat(markdown: string) {
+    return makeWeChatCompatible(applyTheme(postProcessHtml(renderMarkdown(markdown)), 'sspai'), 'sspai');
 }
 
 describe('preprocessMarkdown', () => {
@@ -26,6 +31,28 @@ describe('preprocessMarkdown', () => {
         const doc = new DOMParser().parseFromString(html, 'text/html');
 
         expect(doc.querySelectorAll('strong')).toHaveLength(2);
+    });
+});
+
+describe('WeChat output hygiene (zero-width chars)', () => {
+    it('emits no zero-width spaces in the final clipboard HTML', async () => {
+        const final = await renderForWeChat('- **2 倍档**：AI 替我完成日常编码，我负责审核和修改；');
+
+        expect(final).not.toContain('\u200B');
+    });
+
+    it('keeps absorbed CJK punctuation inside strong without invisible chars', async () => {
+        const final = await renderForWeChat('- **2 倍档**：AI 替我完成日常编码，我负责审核和修改；');
+        const doc = new DOMParser().parseFromString(final, 'text/html');
+        const strong = doc.querySelector('li strong');
+
+        expect(strong?.textContent).toBe('2 倍档：');
+    });
+
+    it('glues the strong-to-text boundary with a word joiner', async () => {
+        const final = await renderForWeChat('- **2 倍档**：AI 替我完成日常编码，我负责审核和修改；');
+
+        expect(final).toMatch(/<\/strong>\u2060AI/);
     });
 });
 

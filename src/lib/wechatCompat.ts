@@ -247,6 +247,10 @@ export async function makeWeChatCompatible(html: string, themeId: string): Promi
     // Example: </strong>： should stay on the same line.
     let outputHtml = doc.body.innerHTML;
     outputHtml = outputHtml.replace(/(<\/(?:strong|b|em|span|a|code)>)\s*([：；，。！？、])/g, '$1\u2060$2');
+    // Same for a strong tag followed directly by plain text (e.g. after the
+    // punctuation-absorption step above produces `<strong>标题：</strong>AI ...`).
+    // U+2060 (word joiner) prohibits a break exactly at that boundary.
+    outputHtml = outputHtml.replace(/(<\/strong>)(?=[A-Za-z0-9])/g, '$1\u2060');
 
     return outputHtml;
 }

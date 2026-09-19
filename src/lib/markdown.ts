@@ -59,6 +59,12 @@ export function preprocessMarkdown(content: string) {
  * failed to parse (common with CJK text) into proper `<strong>` tags.
  * This handles cases like `会**text**` or `**text，**` where CJK
  * characters prevent markdown-it from recognizing the emphasis markers.
+ *
+ * Also strips zero-width spaces (U+200B). `preprocessMarkdown` inserts
+ * them only as a parsing crutch so markdown-it recognizes CJK-adjacent
+ * `**` emphasis. Once parsing is done they serve no purpose, and their
+ * Unicode meaning ("line break allowed here") makes WeChat's editor
+ * break lines at strong boundaries after pasting.
  */
 export function postProcessHtml(html: string): string {
     let result = '';
@@ -94,7 +100,9 @@ export function postProcessHtml(html: string): string {
         result += html[i];
         i++;
     }
-    return result;
+    // Remove zero-width spaces inserted by preprocessMarkdown — they are
+    // line-break opportunities that corrupt layout in WeChat's editor.
+    return result.replace(/\u200B/g, '');
 }
 
 export function applyTheme(html: string, themeId: string) {
