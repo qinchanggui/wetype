@@ -143,6 +143,20 @@ export function postProcessHtml(html: string): string {
     return result.replace(/\u200B/g, '');
 }
 
+/**
+ * Join inline style declarations without producing malformed CSS.
+ * The old `current + '; ' + extra` concatenation emitted leading
+ * semicolons and `;;` whenever `current` was empty — invalid values
+ * that WeChat's paste parser reacts to erratically (erratic line
+ * splits) and that made the preview HTML non-standard.
+ */
+function joinStyles(...parts: (string | undefined | null)[]): string {
+    return parts
+        .map(part => (part || '').trim().replace(/;\s*$/, ''))
+        .filter(part => part.length > 0)
+        .join('; ');
+}
+
 export function applyTheme(html: string, themeId: string) {
     const theme = THEMES.find(t => t.id === themeId) || THEMES[0];
     const style = theme.styles;
@@ -278,26 +292,26 @@ export function applyTheme(html: string, themeId: string) {
             if (selector === 'code' && el.parentElement?.tagName === 'PRE') return;
             if (el.tagName === 'IMG' && el.closest('.image-grid')) return;
             const currentStyle = el.getAttribute('style') || '';
-            el.setAttribute('style', currentStyle + '; ' + style[selector as keyof typeof style]);
+            el.setAttribute('style', joinStyles(currentStyle, style[selector as keyof typeof style]));
         });
     });
 
     // Tailwind preflight removes native list markers. Restore explicit markers.
     doc.querySelectorAll('ul').forEach(ul => {
         const currentStyle = ul.getAttribute('style') || '';
-        ul.setAttribute('style', `${currentStyle}; list-style-type: disc !important; list-style-position: outside;`);
+        ul.setAttribute('style', joinStyles(currentStyle, 'list-style-type: disc !important; list-style-position: outside;'));
     });
     doc.querySelectorAll('ul ul').forEach(ul => {
         const currentStyle = ul.getAttribute('style') || '';
-        ul.setAttribute('style', `${currentStyle}; list-style-type: circle !important;`);
+        ul.setAttribute('style', joinStyles(currentStyle, 'list-style-type: circle !important;'));
     });
     doc.querySelectorAll('ul ul ul').forEach(ul => {
         const currentStyle = ul.getAttribute('style') || '';
-        ul.setAttribute('style', `${currentStyle}; list-style-type: square !important;`);
+        ul.setAttribute('style', joinStyles(currentStyle, 'list-style-type: square !important;'));
     });
     doc.querySelectorAll('ol').forEach(ol => {
         const currentStyle = ol.getAttribute('style') || '';
-        ol.setAttribute('style', `${currentStyle}; list-style-type: decimal !important; list-style-position: outside;`);
+        ol.setAttribute('style', joinStyles(currentStyle, 'list-style-type: decimal !important; list-style-position: outside;'));
     });
 
     const hljsLight: Record<string, string> = {
@@ -337,7 +351,7 @@ export function applyTheme(html: string, themeId: string) {
         const currentStyle = pre.getAttribute('style') || '';
         pre.setAttribute(
             'style',
-            `${currentStyle}; font-variant-ligatures: none; tab-size: 2;`
+            joinStyles(currentStyle, 'font-variant-ligatures: none; tab-size: 2;')
         );
     });
 
@@ -345,7 +359,7 @@ export function applyTheme(html: string, themeId: string) {
         const currentStyle = codeNode.getAttribute('style') || '';
         codeNode.setAttribute(
             'style',
-            `${currentStyle}; display: block; font-size: inherit !important; line-height: inherit !important; font-style: normal !important; white-space: pre; word-break: normal; overflow-wrap: normal;`
+            joinStyles(currentStyle, 'display: block; font-size: inherit !important; line-height: inherit !important; font-style: normal !important; white-space: pre; word-break: normal; overflow-wrap: normal;')
         );
     });
 
@@ -354,7 +368,7 @@ export function applyTheme(html: string, themeId: string) {
         Object.keys(headingInlineOverrides).forEach(tag => {
             heading.querySelectorAll(tag).forEach(node => {
                 const override = headingInlineOverrides[tag];
-                node.setAttribute('style', `${node.getAttribute('style') || ''}; ${override}`);
+                node.setAttribute('style', joinStyles(node.getAttribute('style'), override));
             });
         });
     });
@@ -366,7 +380,7 @@ export function applyTheme(html: string, themeId: string) {
         const appendedStyle = inGrid
             ? 'display:block; max-width:100%; height:auto; margin:0 !important; padding:8px !important; border-radius:14px !important; box-sizing:border-box; box-shadow:0 12px 28px rgba(15,23,42,0.18), 0 2px 8px rgba(15,23,42,0.12); border:1px solid rgba(255,255,255,0.75);'
             : 'display:block; width:100%; max-width:100%; height:auto; margin:30px auto !important; padding:8px !important; border-radius:14px !important; box-sizing:border-box; box-shadow:0 16px 34px rgba(15,23,42,0.22), 0 4px 10px rgba(15,23,42,0.12); border:1px solid rgba(15,23,42,0.12);';
-        img.setAttribute('style', `${currentStyle}; ${appendedStyle}`);
+        img.setAttribute('style', joinStyles(currentStyle, appendedStyle));
     });
 
     const container = doc.createElement('div');

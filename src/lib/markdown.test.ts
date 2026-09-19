@@ -144,4 +144,73 @@ describe('applyTheme', () => {
         expect(pre?.getAttribute('style')).not.toContain('font-family:');
         expect(code?.getAttribute('style')).not.toContain('font-family:');
     });
+
+    it('emits well-formed style attributes on the preview path too', () => {
+        const themed = applyTheme(renderMarkdown('- **标签**：说明文字\n\n# 标题\n\n> 引用'), 'sspai');
+        const doc = new DOMParser().parseFromString(themed, 'text/html');
+
+        const styled = Array.from(doc.querySelectorAll('[style]'));
+        expect(styled.length).toBeGreaterThan(0);
+        for (const el of styled) {
+            const style = el.getAttribute('style') || '';
+            expect(style.startsWith(';')).toBe(false);
+            expect(style.includes(';;')).toBe(false);
+            expect(style.trim().length).toBeGreaterThan(0);
+        }
+    });
+});
+
+describe('golden fixture: WeChat regression invariants', () => {
+    const ARTICLE = `# 标题：冒号测试
+
+大多数人停在 1~2 倍，**差距不在模型，而在一个词**：Harness。
+
+- **2 倍档**：AI 替我完成日常编码，我负责审核和修改；
+- **5 倍档**：AI 替我跑完整个研发流程，我只把关关键代码；
+
+1. **运行与组合层**：插件、配置、CLI 接入；
+2. **会话与状态层**：会话数据、持久化。
+
+> 引用块里的**加粗**与文字。
+
+\`\`\`javascript
+// 注释
+const x = 1;
+\`\`\`
+`;
+
+    it('keeps every WeChat hardening invariant through the full pipeline', async () => {
+        const final = await renderForWeChat(ARTICLE);
+
+        // 1. no zero-width break-opportunity characters survive
+        expect(final).not.toContain('\u200B');
+
+        // 2. all style attributes are valid CSS (no leading/duplicated semicolons)
+        const doc = new DOMParser().parseFromString(final, 'text/html');
+        for (const el of Array.from(doc.querySelectorAll('[style]'))) {
+            const style = el.getAttribute('style') || '';
+            expect(style.startsWith(';')).toBe(false);
+            expect(style.includes(';;')).toBe(false);
+        }
+
+        // 3. list items are wrapped in WeChat's native li>p structure
+        const listItems = Array.from(doc.querySelectorAll('li'));
+        expect(listItems.length).toBeGreaterThanOrEqual(4);
+        for (const li of listItems) {
+            expect(li.querySelector('p')).not.toBeNull();
+        }
+
+        // 4. bold labels keep their styling with CJK punctuation absorbed
+        const strongs = Array.from(doc.querySelectorAll('li strong'));
+        expect(strongs.map(s => s.textContent)).toContain('2 倍档：');
+        expect(strongs.every(s => (s.getAttribute('style') || '').includes('font-weight: 700'))).toBe(true);
+
+        // 5. paragraph-level bold survives untouched
+        const paragraphStrong = Array.from(doc.querySelectorAll('p strong'))
+            .find(s => s.textContent?.includes('差距不在模型'));
+        expect(paragraphStrong).toBeTruthy();
+
+        // 6. code highlighting still works with the curated language set
+        expect(doc.querySelector('.hljs-comment')).not.toBeNull();
+    });
 });

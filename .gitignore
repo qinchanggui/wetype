@@ -11,3 +11,6 @@ test-results/
 *.swp
 *.swo
 *~
+
+vite.config.js
+vite.config.d.ts
