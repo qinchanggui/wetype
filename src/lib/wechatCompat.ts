@@ -114,7 +114,7 @@ export async function makeWeChatCompatible(html: string, themeId: string): Promi
             ['P', 'DIV', 'UL', 'OL', 'BLOCKQUOTE'].includes(child.tagName)
         );
         if (hasBlockChildren) {
-            // We only want to clean inner tags if it's overly complex, 
+            // We only want to clean inner tags if it's overly complex,
             // but flattening everything might kill <strong> or <em>.
             // Let's just strip 'p' inside 'li' by replacing <p> with <span>
             const ps = li.querySelectorAll('p');
@@ -126,6 +126,29 @@ export async function makeWeChatCompatible(html: string, themeId: string): Promi
                 p.parentNode?.replaceChild(span, p);
             });
         }
+    });
+
+    // 3.5 Wrap inline-only list items in <p> (WeChat's native list dialect).
+    // WeChat's editor natively emits `<li><p>content</p></li>` (ueditor heritage).
+    // When it receives a bare `<li><strong>label：</strong>text</li>`, its paste
+    // parser treats each direct child node as a separate block, dropping inline
+    // elements (bold/color vanish) and breaking the line at element boundaries.
+    // Wrapping the inline run in a <p> routes list content through the same
+    // (working) paste path used for paragraphs.
+    // Must run AFTER step 3 (which would strip this p) and BEFORE step 4
+    // (Force Inheritance styles the new p).
+    section.querySelectorAll('li').forEach(li => {
+        const hasBlockChildren = Array.from(li.children).some(child =>
+            ['P', 'DIV', 'UL', 'OL', 'BLOCKQUOTE', 'SECTION'].includes(child.tagName)
+        );
+        if (hasBlockChildren) return;
+
+        const wrapper = doc.createElement('p');
+        wrapper.setAttribute('style', 'margin: 0; padding: 0;');
+        while (li.firstChild) {
+            wrapper.appendChild(li.firstChild);
+        }
+        li.appendChild(wrapper);
     });
 
     // 4. Force Inheritance

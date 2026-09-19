@@ -62,6 +62,23 @@ describe('WeChat output hygiene (zero-width chars)', () => {
             expect(style.trim().length).toBeGreaterThan(0);
         }
     });
+
+    it('wraps inline-only list items in a p (WeChat native li structure)', async () => {
+        const final = await renderForWeChat('- **2 倍档**：AI 替我完成日常编码，我负责审核和修改；');
+        const doc = new DOMParser().parseFromString(final, 'text/html');
+        const li = doc.querySelector('li');
+        const wrapper = li?.querySelector('p') ?? null;
+
+        // exactly one wrapper p, holding the whole inline run
+        expect(li?.querySelectorAll('p')).toHaveLength(1);
+        expect(wrapper?.textContent).toBe('2 倍档：AI 替我完成日常编码，我负责审核和修改；');
+        // strong survives inside the wrapper with its theme style
+        const strong = wrapper?.querySelector('strong');
+        expect(strong?.textContent).toBe('2 倍档：');
+        expect(strong?.getAttribute('style')).toContain('font-weight: 700');
+        // wrapper must not add vertical space inside the list item
+        expect(wrapper?.getAttribute('style')).toMatch(/margin:\s*0/);
+    });
 });
 
 describe('applyTheme', () => {
