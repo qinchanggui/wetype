@@ -49,10 +49,18 @@ describe('WeChat output hygiene (zero-width chars)', () => {
         expect(strong?.textContent).toBe('2 倍档：');
     });
 
-    it('glues the strong-to-text boundary with a word joiner', async () => {
+    it('emits well-formed style attributes (no leading/duplicated semicolons)', async () => {
         const final = await renderForWeChat('- **2 倍档**：AI 替我完成日常编码，我负责审核和修改；');
+        const doc = new DOMParser().parseFromString(final, 'text/html');
 
-        expect(final).toMatch(/<\/strong>\u2060AI/);
+        const styled = Array.from(doc.querySelectorAll('[style]'));
+        expect(styled.length).toBeGreaterThan(0);
+        for (const el of styled) {
+            const style = el.getAttribute('style') || '';
+            expect(style.startsWith(';')).toBe(false);
+            expect(style.includes(';;')).toBe(false);
+            expect(style.trim().length).toBeGreaterThan(0);
+        }
     });
 });
 

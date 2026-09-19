@@ -247,10 +247,27 @@ export async function makeWeChatCompatible(html: string, themeId: string): Promi
     // Example: </strong>： should stay on the same line.
     let outputHtml = doc.body.innerHTML;
     outputHtml = outputHtml.replace(/(<\/(?:strong|b|em|span|a|code)>)\s*([：；，。！？、])/g, '$1\u2060$2');
-    // Same for a strong tag followed directly by plain text (e.g. after the
-    // punctuation-absorption step above produces `<strong>标题：</strong>AI ...`).
-    // U+2060 (word joiner) prohibits a break exactly at that boundary.
-    outputHtml = outputHtml.replace(/(<\/strong>)(?=[A-Za-z0-9])/g, '$1\u2060');
+
+    // Normalize style attributes before handing off to WeChat's fragile CSS parser.
+    // applyTheme concatenates styles as `currentStyle + '; ' + extra`, which yields
+    // malformed values like `"; margin: 8px 0; ..."` or `"...; padding-left: 28px;; ..."`.
+    // A leading semicolon or empty declaration makes the whole attribute invalid CSS;
+    // WeChat's paste sanitizer reacts erratically to such values (erratic inline-run
+    // splits). Emit clean, valid declarations only.
+    const styleDoc = new DOMParser().parseFromString(outputHtml, 'text/html');
+    styleDoc.querySelectorAll<HTMLElement>('[style]').forEach(el => {
+        const cleaned = (el.getAttribute('style') || '')
+            .split(';')
+            .map(part => part.trim())
+            .filter(part => part.length > 0 && part.includes(':'))
+            .join('; ');
+        if (cleaned) {
+            el.setAttribute('style', cleaned);
+        } else {
+            el.removeAttribute('style');
+        }
+    });
+    outputHtml = styleDoc.body.innerHTML;
 
     return outputHtml;
 }
