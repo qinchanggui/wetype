@@ -19,7 +19,7 @@ export default function EditorPanel({ markdownInput, onInputChange, editorScroll
             <textarea
                 ref={editorScrollRef}
                 data-testid="editor-input"
-                className="w-full flex-1 p-8 md:p-10 resize-none bg-transparent outline-none font-mono text-[15px] md:text-[16px] leading-[1.8] no-scrollbar text-[#1d1d1f] placeholder-[#86868b]"
+                className="w-full flex-1 p-8 md:p-12 resize-none bg-transparent outline-none font-mono text-[15px] md:text-[16px] leading-[1.8] no-scrollbar text-[#1d1d1f] caret-[#0066cc] placeholder-[#a1a1a6]"
                 value={markdownInput}
                 onChange={(e) => onInputChange(e.target.value)}
                 onPaste={onPaste}

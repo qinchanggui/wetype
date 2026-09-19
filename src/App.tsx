@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { MotionConfig } from 'framer-motion';
 import { PenLine, Eye } from 'lucide-react';
 import { md, preprocessMarkdown, postProcessHtml, applyTheme } from './lib/markdown';
 import { makeWeChatCompatible, cleanInternalAttributes } from './lib/wechatCompat';
@@ -136,9 +137,10 @@ export default function App() {
     const paragraphCount = markdownInput.split(/\n\s*\n/).filter(p => p.trim()).length;
 
     return (
-        <div className="flex flex-col h-screen overflow-hidden antialiased bg-[#fbfbfd] transition-colors duration-300">
+        <MotionConfig reducedMotion="user">
+            <div className="flex flex-col h-screen overflow-hidden antialiased bg-[#fbfbfd]">
 
-            <Header />
+                <Header />
 
             {/* 移动端 Tab 切换 */}
             <div className="md:hidden glass-toolbar flex items-center z-[90]">
@@ -211,12 +213,13 @@ export default function App() {
             </main>
 
             {/* 状态栏 */}
-            <div className="glass-toolbar flex items-center justify-center gap-6 px-4 py-1.5 text-[12px] text-[#86868b] z-[90]">
-                <span>{charCount} 字符</span>
-                <span>{wordCount} 字</span>
-                <span>{paragraphCount} 段</span>
+            <div className="glass-toolbar flex items-center justify-center gap-6 px-4 py-2 text-[12px] text-[#86868b] z-[90]">
+                <span><span className="tabular-nums font-medium text-[#55555c]">{charCount}</span> 字符</span>
+                <span><span className="tabular-nums font-medium text-[#55555c]">{wordCount}</span> 字</span>
+                <span><span className="tabular-nums font-medium text-[#55555c]">{paragraphCount}</span> 段</span>
                 <span className="ml-auto mr-0">v{__APP_VERSION__}</span>
             </div>
-        </div>
+            </div>
+        </MotionConfig>
     );
 }
