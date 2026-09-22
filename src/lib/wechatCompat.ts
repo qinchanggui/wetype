@@ -91,8 +91,11 @@ export async function makeWeChatCompatible(html: string, themeId: string): Promi
                 td.appendChild(child);
                 // Update child width to 100% since it's now bound by TD
                 if (child.tagName === 'IMG') {
-                    const currentStyle = child.getAttribute('style') || '';
-                    child.setAttribute('style', currentStyle.replace(/width:\s*[^;]+;?/g, '') + ' width: 100% !important; display: block; margin: 0 auto;');
+                    const stripped = (child.getAttribute('style') || '').replace(/width:\s*[^;]+;?/g, '').trim();
+                    // Ensure remaining declarations are terminated before appending,
+                    // or the last one merges with `width: 100%` into invalid CSS.
+                    const base = stripped && !stripped.endsWith(';') ? `${stripped};` : stripped;
+                    child.setAttribute('style', base + ' width: 100% !important; display: block; margin: 0 auto;');
                 }
                 tr.appendChild(td);
             });
@@ -165,7 +168,16 @@ export async function makeWeChatCompatible(html: string, themeId: string): Promi
         // Preserve code highlighting tokens inside code blocks.
         if (node.tagName === 'SPAN' && node.closest('pre, code')) return;
 
-        let currentStyle = node.getAttribute('style') || '';
+        let currentStyle = (node.getAttribute('style') || '').trim();
+        // applyTheme's joinStyles strips trailing semicolons, so incoming styles
+        // never end with ';'. Appending ' font-family: ...' without a separator
+        // merges two declarations into one invalid CSS value (e.g.
+        // `letter-spacing: -0.01em font-family: ...`). Browsers drop the bad
+        // declaration silently in preview, but WeChat's paste sanitizer reacts
+        // erratically to invalid CSS — headings lose their styling on paste.
+        if (currentStyle && !currentStyle.endsWith(';')) {
+            currentStyle += ';';
+        }
 
         if (fontMatch && !currentStyle.includes('font-family:')) {
             currentStyle += ` font-family: ${fontMatch[1]};`;

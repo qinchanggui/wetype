@@ -165,6 +165,8 @@ describe('golden fixture: WeChat regression invariants', () => {
 
 大多数人停在 1~2 倍，**差距不在模型，而在一个词**：Harness。
 
+## 二级标题：路线图
+
 - **2 倍档**：AI 替我完成日常编码，我负责审核和修改；
 - **5 倍档**：AI 替我跑完整个研发流程，我只把关关键代码；
 
@@ -212,5 +214,40 @@ const x = 1;
 
         // 6. code highlighting still works with the curated language set
         expect(doc.querySelector('.hljs-comment')).not.toBeNull();
+    });
+
+    it('separates inherited declarations from theme styles (headings keep full style on WeChat paste)', async () => {
+        const final = await renderForWeChat(ARTICLE);
+        const doc = new DOMParser().parseFromString(final, 'text/html');
+
+        // Every declaration must be well-formed: one property + one value.
+        // A second property-like token inside a value means two declarations
+        // were merged without a ';' separator — invalid CSS that browsers
+        // drop silently in preview but WeChat's paste sanitizer chokes on.
+        for (const el of Array.from(doc.querySelectorAll('[style]'))) {
+            const style = el.getAttribute('style') || '';
+            for (const decl of style.split(';')) {
+                const trimmed = decl.trim();
+                if (!trimmed) continue;
+                const colon = trimmed.indexOf(':');
+                expect(colon).toBeGreaterThan(0);
+                expect(trimmed.slice(0, colon).trim()).toMatch(/^[a-zA-Z-]+$/);
+                expect(trimmed.slice(colon + 1)).not.toMatch(/(?:^|\s)[a-z-]{2,}\s*:/);
+            }
+        }
+
+        // The h1 keeps its last theme declaration and the inherited font-family
+        // as two separate declarations (the old bug glued them together).
+        const h1Style = doc.querySelector('h1')?.getAttribute('style') || '';
+        expect(h1Style).toContain('letter-spacing: -0.01em');
+        expect(h1Style).toContain('font-family: -apple-system');
+        expect(h1Style).not.toContain('letter-spacing: -0.01em font-family');
+
+        // Same invariant on h2 (border-left is its last theme declaration).
+        const h2 = doc.querySelector('h2');
+        const h2Style = h2?.getAttribute('style') || '';
+        expect(h2).not.toBeNull();
+        expect(h2Style).not.toContain('border-left: 4px solid #d71a1b font-family');
+        expect(h2Style).toContain('font-family: -apple-system');
     });
 });
